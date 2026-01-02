@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE ROCK GYM CENTER</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS (Legacy Support) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/v/bs5/dt-2.2.1/datatables.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    <!-- Tailwind & App CSS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .sidebar-active { background-color: rgba(255, 255, 255, 0.1); border-left: 4px solid #E31837; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #E31837; }
+    </style>
+</head>
+<body class="h-full">
+
+    <!-- Mobile Menu Button -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-btn" class="text-white bg-gray-900 p-2 rounded-lg shadow-lg">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#E31837] text-white transition-transform -translate-x-full lg:translate-x-0 border-r border-red-700 shadow-2xl flex flex-col">
+            <!-- Logo -->
+            <div class="h-16 flex items-center px-6 bg-[#C41430] text-white shadow-md">
+                <a href="{{ route('dashboard') }}" class="flex items-center w-full hover:opacity-90 transition-opacity decoration-0 no-underline text-white">
+                    <img src="{{ asset('img/sin fondo 1.png') }}" alt="Logo" class="h-10 w-auto mr-3 bg-white rounded-full p-1">
+                    <span class="font-bold text-lg tracking-wide uppercase">The Rock Gym</span>
+                </a>
+            </div>
+
+            <!-- User Info -->
+            <div class="p-6 border-b border-red-700 bg-[#B91C1C]">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-full bg-white flex items-center justify-center text-[#E31837] font-bold text-xl border-2 border-red-200">
+                        {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-white">{{ Auth::user()->name ?? 'Usuario' }}</p>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                
+                <!-- Section Label -->
+                <p class="px-3 text-xs font-semibold text-red-200 uppercase tracking-wider mb-2 mt-2">Menú Principal</p>
+
+                <!-- Usuarios -->
+                <div class="nav-item">
+                    <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-usuarios')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-users w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Usuarios
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-usuarios"></i>
+                    </button>
+                    <div id="submenu-usuarios" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/usuarios') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Listado</a>
+                        <a href="{{ url('/roles') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Roles</a>
+                        <a href="{{ url('/permisos') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Permisos</a>
+                    </div>
+                </div>
+
+                <!-- Membresía -->
+                <div class="nav-item">
+                    <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-membresia')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-id-card w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Membresía
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-membresia"></i>
+                    </button>
+                    <div id="submenu-membresia" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/membresias') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Membresías</a>
+                        <a href="{{ url('/membresias_usuarios') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Asignaciones</a>
+                    </div>
+                </div>
+
+                <!-- Inventario -->
+                <div class="nav-item">
+                    <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-inventario')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-box w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Inventario
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-inventario"></i>
+                    </button>
+                    <div id="submenu-inventario" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/productos') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Productos</a>
+                        <a href="{{ url('/categorias') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Categorías</a>
+                    </div>
+                </div>
+
+                <!-- Ventas -->
+                <div class="nav-item">
+                     <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-ventas')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-shopping-cart w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Ventas
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-ventas"></i>
+                    </button>
+                    <div id="submenu-ventas" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/ventas') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Ventas</a>
+                    </div>
+                </div>
+                
+                <!-- Ingresos -->
+                 <div class="nav-item">
+                    <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-ingresos')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-money-bill w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Ingresos
+                        </div>
+                        <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-ingresos"></i>
+                    </button>
+                    <div id="submenu-ingresos" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/ingresos') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Ingresos Diarios</a>
+                        <a href="{{ url('/detalles_ingresos') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Detalles</a>
+                    </div>
+                </div>
+
+                <!-- Reportes -->
+                <div class="nav-item">
+                    <button class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-[#C41430] hover:text-white transition-colors group" onclick="toggleSubmenu('submenu-reportes')">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-pdf w-5 text-center text-white group-hover:text-white transition-colors"></i>
+                            Reportes
+                        </div>
+                         <i class="fas fa-chevron-right text-xs transition-transform transform group-hover:text-white text-white" id="arrow-reportes"></i>
+                    </button>
+                    <div id="submenu-reportes" class="hidden pl-10 mt-1 space-y-1">
+                        <a href="{{ url('/reportes') }}" class="block px-3 py-2 text-sm text-white hover:text-white hover:bg-[#C41430] rounded-md transition-all border-l-2 border-transparent hover:border-white no-underline">Generar Reporte</a>
+                    </div>
+                </div>
+
+            </nav>
+
+            <!-- Footer Sidebar -->
+            <div class="p-4 border-t border-red-700 bg-[#C41430]" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center justify-between w-full text-white hover:text-gray-200 transition-colors text-sm font-medium focus:outline-none group">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-cog group-hover:rotate-90 transition-transform duration-300"></i> Configuración
+                    </div>
+                    <i class="fas fa-chevron-up transition-transform duration-300" :class="{'rotate-180': open}"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div x-show="open" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translateY-2"
+                     x-transition:enter-end="opacity-100 translateY-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translateY-0"
+                     x-transition:leave-end="opacity-0 translateY-2"
+                     class="mt-3 space-y-2 pl-2" style="display: none;">
+                     
+                    <a href="{{ route('register') }}" class="flex items-center gap-2 text-red-100 hover:text-white transition-colors text-sm py-1 rounded hover:bg-white/10 px-2">
+                        <i class="fas fa-user-plus w-4 text-center"></i> Nuevo Usuario
+                    </a>
+                    
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="flex items-center gap-2 text-red-100 hover:text-white transition-colors text-sm py-1 rounded hover:bg-white/10 px-2">
+                            <i class="fas fa-sign-out-alt w-4 text-center"></i> Cerrar Sesión
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50 lg:ml-64 transition-all duration-300">
+            
+            <!-- Topbar (Only for Mobile/Tablet or Breadcrumbs in desktop) -->
+            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 lg:hidden">
+                <div class="font-bold text-lg text-gray-800">The Rock Gym Center</div>
+                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                     <i class="fas fa-user"></i>
+                </div>
+            </header>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-auto p-8">
+                 @yield('content')
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/dt-2.2.1/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        // Sidebar Toggle Logic
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+            
+            if (submenu.classList.contains('hidden')) {
+                // Close others if needed (optional)
+                submenu.classList.remove('hidden');
+                arrow.classList.add('rotate-90');
+            } else {
+                submenu.classList.add('hidden');
+                arrow.classList.remove('rotate-90');
+            }
+        }
+
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        if(mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+        }
+        
+        // Auto-initialize DataTables if they exist
+        $(document).ready(function() {
+            if ($.fn.DataTable.isDataTable('#mitabla')) {
+                // Already initialized
+            } else {
+                 $('#mitabla').DataTable({
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/2.2.1/i18n/es-ES.json',
+                    },
+                    responsive: true,
+                    // Custom styling for Tailwind integration
+                    initComplete: function() {
+                        $('.dataTables_filter input').addClass('border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500');
+                        $('.dataTables_length select').addClass('border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <!-- Render extra scripts from child views -->
+    @stack('scripts')
+</body>
+</html>
