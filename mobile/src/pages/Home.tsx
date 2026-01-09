@@ -24,20 +24,36 @@ import {
     IonItemOptions,
     IonItemOption,
     IonAlert,
+    IonRefresher,
+    IonRefresherContent,
+    IonSkeletonText,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    RefresherEventDetail,
 } from "@ionic/react";
-import { add, pencil, trash, create, close } from "ionicons/icons";
+import { add, create, close, trash, logOut, pricetag } from "ionicons/icons";
 import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import api from "../services/api";
+import authService from "../services/auth.service";
+import "./Home.css";
 
 const Home: React.FC = () => {
+    const history = useHistory();
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
+    const [toastColor, setToastColor] = useState<
+        "success" | "danger" | "warning"
+    >("success");
     const [editingId, setEditingId] = useState<number | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
     // Form State
     const initialProductState = {
@@ -61,14 +77,25 @@ const Home: React.FC = () => {
         } catch (error: any) {
             console.error("Error fetching data:", error);
             setToastMessage(`Error: ${error.message}`);
+            setToastColor("danger");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        // Verificar autenticación
+        if (!authService.isAuthenticated()) {
+            history.push("/login");
+            return;
+        }
         fetchData();
-    }, []);
+    }, [history]);
+
+    const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+        await fetchData();
+        event.detail.complete();
+    };
 
     const handleOpenModal = (product?: any) => {
         if (product) {
@@ -91,22 +118,26 @@ const Home: React.FC = () => {
     const handleSave = async () => {
         if (!formData.nombre || !formData.precio || !formData.categoria_id) {
             setToastMessage("Por favor completa los campos obligatorios");
+            setToastColor("warning");
             return;
         }
 
         try {
             if (editingId) {
                 await api.put(`/products/${editingId}`, formData);
-                setToastMessage("Producto actualizado exitosamente");
+                setToastMessage("✓ Producto actualizado");
+                setToastColor("success");
             } else {
                 await api.post("/products", formData);
-                setToastMessage("Producto creado exitosamente");
+                setToastMessage("✓ Producto creado");
+                setToastColor("success");
             }
             setShowModal(false);
             fetchData();
         } catch (error: any) {
             console.error("Error saving product:", error);
             setToastMessage(`Error al guardar: ${error.message}`);
+            setToastColor("danger");
         }
     };
 
@@ -119,25 +150,56 @@ const Home: React.FC = () => {
         if (!deleteId) return;
         try {
             await api.delete(`/products/${deleteId}`);
-            setToastMessage("Producto eliminado exitosamente");
+            setToastMessage("✓ Producto eliminado");
+            setToastColor("success");
             fetchData();
         } catch (error: any) {
             console.error("Error deleting product:", error);
             setToastMessage(`Error al eliminar: ${error.message}`);
+            setToastColor("danger");
         } finally {
             setShowAlert(false);
             setDeleteId(null);
         }
     };
 
+    const handleLogout = () => {
+        authService.logout();
+        history.push("/login");
+    };
+
+    const renderSkeleton = () => (
+        <>
+            {[1, 2, 3, 4, 5].map((i) => (
+                <IonCard key={i}>
+                    <IonCardHeader>
+                        <IonSkeletonText animated style={{ width: "60%" }} />
+                    </IonCardHeader>
+                    <IonCardContent>
+                        <IonSkeletonText animated style={{ width: "40%" }} />
+                    </IonCardContent>
+                </IonCard>
+            ))}
+        </>
+    );
+
     return (
         <IonPage>
             <IonHeader>
-                <IonToolbar>
+                <IonToolbar color="primary">
                     <IonTitle>The Rock Gym - Inventario</IonTitle>
+                    <IonButtons slot="end">
+                        <IonButton onClick={() => setShowLogoutAlert(true)}>
+                            <IonIcon icon={logOut} />
+                        </IonButton>
+                    </IonButtons>
                 </IonToolbar>
             </IonHeader>
             <IonContent fullscreen>
+                <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+                    <IonRefresherContent />
+                </IonRefresher>
+
                 <IonHeader collapse="condense">
                     <IonToolbar>
                         <IonTitle size="large">Inventario</IonTitle>
@@ -145,48 +207,63 @@ const Home: React.FC = () => {
                 </IonHeader>
 
                 {loading ? (
-                    <IonLoading isOpen={loading} message={"Cargando..."} />
+                    renderSkeleton()
                 ) : (
-                    <IonList>
+                    <div className="products-grid">
                         {products
                             .sort((a, b) => b.id - a.id)
                             .map((p) => (
-                                <IonItemSliding key={p.id}>
-                                    <IonItem>
-                                        <IonLabel>
-                                            <h2>{p.nombre}</h2>
-                                            <p>
-                                                {p.categoria?.nombre ||
-                                                    "Sin categoría"}
-                                            </p>
-                                        </IonLabel>
-                                        <IonNote slot="end" color="primary">
-                                            ${p.precio}
-                                        </IonNote>
-                                    </IonItem>
-                                    <IonItemOptions side="end">
-                                        <IonItemOption
-                                            color="primary"
-                                            onClick={() => handleOpenModal(p)}
-                                        >
-                                            <IonIcon
-                                                slot="icon-only"
-                                                icon={create}
-                                            />
-                                        </IonItemOption>
-                                        <IonItemOption
-                                            color="danger"
-                                            onClick={() => confirmDelete(p.id)}
-                                        >
-                                            <IonIcon
-                                                slot="icon-only"
-                                                icon={trash}
-                                            />
-                                        </IonItemOption>
-                                    </IonItemOptions>
-                                </IonItemSliding>
+                                <IonCard key={p.id} className="product-card">
+                                    <IonCardHeader>
+                                        <IonCardTitle>{p.nombre}</IonCardTitle>
+                                        <p className="category-badge">
+                                            <IonIcon icon={pricetag} />{" "}
+                                            {p.categoria?.nombre ||
+                                                "Sin categoría"}
+                                        </p>
+                                    </IonCardHeader>
+                                    <IonCardContent>
+                                        <div className="product-info">
+                                            <div className="price">
+                                                ${p.precio}
+                                            </div>
+                                            <div className="stock">
+                                                Stock: {p.stock}
+                                            </div>
+                                        </div>
+                                        <div className="product-actions">
+                                            <IonButton
+                                                size="small"
+                                                fill="outline"
+                                                onClick={() =>
+                                                    handleOpenModal(p)
+                                                }
+                                            >
+                                                <IonIcon
+                                                    slot="start"
+                                                    icon={create}
+                                                />
+                                                Editar
+                                            </IonButton>
+                                            <IonButton
+                                                size="small"
+                                                fill="outline"
+                                                color="danger"
+                                                onClick={() =>
+                                                    confirmDelete(p.id)
+                                                }
+                                            >
+                                                <IonIcon
+                                                    slot="start"
+                                                    icon={trash}
+                                                />
+                                                Eliminar
+                                            </IonButton>
+                                        </div>
+                                    </IonCardContent>
+                                </IonCard>
                             ))}
-                    </IonList>
+                    </div>
                 )}
 
                 <IonFab vertical="bottom" horizontal="end" slot="fixed">
@@ -200,7 +277,7 @@ const Home: React.FC = () => {
                     onDidDismiss={() => setShowModal(false)}
                 >
                     <IonHeader>
-                        <IonToolbar>
+                        <IonToolbar color="primary">
                             <IonTitle>
                                 {editingId
                                     ? "Editar Producto"
@@ -215,7 +292,7 @@ const Home: React.FC = () => {
                     </IonHeader>
                     <IonContent className="ion-padding">
                         <IonItem>
-                            <IonLabel position="stacked">Nombre</IonLabel>
+                            <IonLabel position="floating">Nombre *</IonLabel>
                             <IonInput
                                 value={formData.nombre}
                                 onIonChange={(e) =>
@@ -227,7 +304,7 @@ const Home: React.FC = () => {
                             />
                         </IonItem>
                         <IonItem>
-                            <IonLabel position="stacked">Precio</IonLabel>
+                            <IonLabel position="floating">Precio *</IonLabel>
                             <IonInput
                                 type="number"
                                 value={formData.precio}
@@ -240,7 +317,7 @@ const Home: React.FC = () => {
                             />
                         </IonItem>
                         <IonItem>
-                            <IonLabel position="stacked">Stock</IonLabel>
+                            <IonLabel position="floating">Stock</IonLabel>
                             <IonInput
                                 type="number"
                                 value={formData.stock}
@@ -253,7 +330,7 @@ const Home: React.FC = () => {
                             />
                         </IonItem>
                         <IonItem>
-                            <IonLabel position="stacked">Categoría</IonLabel>
+                            <IonLabel position="floating">Categoría *</IonLabel>
                             <IonSelect
                                 value={formData.categoria_id}
                                 onIonChange={(e) =>
@@ -271,7 +348,7 @@ const Home: React.FC = () => {
                             </IonSelect>
                         </IonItem>
                         <IonItem>
-                            <IonLabel position="stacked">Descripción</IonLabel>
+                            <IonLabel position="floating">Descripción</IonLabel>
                             <IonTextarea
                                 value={formData.descripcion}
                                 onIonChange={(e) =>
@@ -283,7 +360,7 @@ const Home: React.FC = () => {
                             />
                         </IonItem>
 
-                        <div className="ion-padding">
+                        <div className="ion-padding-top">
                             <IonButton expand="block" onClick={handleSave}>
                                 {editingId ? "Actualizar" : "Guardar"}
                             </IonButton>
@@ -314,10 +391,30 @@ const Home: React.FC = () => {
                     ]}
                 />
 
+                <IonAlert
+                    isOpen={showLogoutAlert}
+                    onDidDismiss={() => setShowLogoutAlert(false)}
+                    header={"Cerrar sesión"}
+                    message={"¿Estás seguro de que deseas cerrar sesión?"}
+                    buttons={[
+                        {
+                            text: "Cancelar",
+                            role: "cancel",
+                        },
+                        {
+                            text: "Salir",
+                            role: "confirm",
+                            handler: handleLogout,
+                        },
+                    ]}
+                />
+
                 <IonToast
                     isOpen={!!toastMessage}
                     message={toastMessage}
                     duration={2000}
+                    color={toastColor}
+                    position="top"
                     onDidDismiss={() => setToastMessage("")}
                 />
             </IonContent>
