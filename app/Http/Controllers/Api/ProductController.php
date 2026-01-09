@@ -26,10 +26,10 @@ class ProductController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
             'categoria_id' => 'required|integer|exists:categorias,id',
-            'descripcion' => 'required|string|max:500',
-            'estado' => 'required|in:Activo,Inactivo',
+            'descripcion' => 'nullable|string|max:500',
+            'estado' => 'nullable|in:Activo,Inactivo',
         ]);
 
         $producto = Productos::create([
@@ -57,10 +57,10 @@ class ProductController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
             'categoria_id' => 'required|integer|exists:categorias,id',
-            'descripcion' => 'required|string|max:500',
-            'estado' => 'required|in:Activo,Inactivo',
+            'descripcion' => 'nullable|string|max:500',
+            'estado' => 'nullable|in:Activo,Inactivo',
         ]);
 
         $producto = Productos::findOrFail($id);
