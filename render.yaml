@@ -23,12 +23,10 @@ services:
         value: false
       - key: APP_URL
         sync: false # Render auto-asigna la URL
-      - key: DATABASE_URL
+      - key: DB_URL
         fromDatabase:
           name: therockgymcenter-db
           property: connectionString
-      - key: DB_CONNECTION
-        value: pgsql
       - key: SESSION_DRIVER
         value: database # Recomendado vs file en serverless/ephemeral
       - key: SESSION_LIFETIME
