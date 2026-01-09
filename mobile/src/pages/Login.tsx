@@ -14,6 +14,7 @@ import {
     IonCardContent,
     IonCardHeader,
     IonCardTitle,
+    IonText,
 } from "@ionic/react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
@@ -39,7 +40,10 @@ const Login: React.FC = () => {
 
         setLoading(true);
         try {
+            console.log("Starting login process...");
             await authService.login({ email, password });
+            console.log("Login successful!");
+
             setToastMessage("¡Bienvenido!");
             setToastColor("success");
 
@@ -49,9 +53,24 @@ const Login: React.FC = () => {
             }, 500);
         } catch (error: any) {
             console.error("Login error:", error);
-            setToastMessage(
-                error.response?.data?.message || "Credenciales incorrectas"
-            );
+
+            let errorMessage = "Error al iniciar sesión";
+
+            if (error.response) {
+                // Error de respuesta del servidor
+                errorMessage =
+                    error.response.data?.message ||
+                    `Error del servidor (${error.response.status})`;
+            } else if (error.request) {
+                // No se recibió respuesta
+                errorMessage =
+                    "No se pudo conectar al servidor. Verifica tu conexión.";
+            } else {
+                // Error en la configuración de la petición
+                errorMessage = error.message || "Error desconocido";
+            }
+
+            setToastMessage(errorMessage);
             setToastColor("danger");
         } finally {
             setLoading(false);
@@ -112,6 +131,16 @@ const Login: React.FC = () => {
                                     Ingresar
                                 </IonButton>
                             </div>
+
+                            <div className="ion-padding-top ion-text-center">
+                                <IonText color="medium">
+                                    <small>
+                                        Credenciales de prueba:
+                                        <br />
+                                        admin@therockgym.com / admin123
+                                    </small>
+                                </IonText>
+                            </div>
                         </IonCardContent>
                     </IonCard>
                 </div>
@@ -121,8 +150,9 @@ const Login: React.FC = () => {
                 <IonToast
                     isOpen={!!toastMessage}
                     message={toastMessage}
-                    duration={2000}
+                    duration={3000}
                     color={toastColor}
+                    position="top"
                     onDidDismiss={() => setToastMessage("")}
                 />
             </IonContent>

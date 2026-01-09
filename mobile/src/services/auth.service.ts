@@ -15,17 +15,33 @@ class AuthService {
     private USER_KEY = "auth_user";
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        const response = await api.post("/login", credentials);
-        const { token, user } = response.data;
+        try {
+            console.log("Attempting login with:", credentials.email);
+            const response = await api.post("/login", credentials);
+            console.log("Login response:", response.data);
 
-        // Guardar token y usuario en localStorage
-        localStorage.setItem(this.TOKEN_KEY, token);
-        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+            const { token, user } = response.data;
 
-        // Configurar header de autorización para futuras peticiones
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+            if (!token) {
+                throw new Error("No se recibió token del servidor");
+            }
 
-        return { token, user };
+            // Guardar token y usuario en localStorage
+            localStorage.setItem(this.TOKEN_KEY, token);
+            localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+
+            // Configurar header de autorización para futuras peticiones
+            api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+            return { token, user };
+        } catch (error: any) {
+            console.error("Login error details:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+            throw error;
+        }
     }
 
     async logout(): Promise<void> {
