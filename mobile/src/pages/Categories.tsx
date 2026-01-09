@@ -7,7 +7,6 @@ import {
     IonList,
     IonItem,
     IonLabel,
-    IonNote,
     IonFab,
     IonFabButton,
     IonIcon,
@@ -15,14 +14,8 @@ import {
     IonButton,
     IonButtons,
     IonInput,
-    IonSelect,
-    IonSelectOption,
     IonTextarea,
-    IonLoading,
     IonToast,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
     IonAlert,
     IonRefresher,
     IonRefresherContent,
@@ -33,24 +26,14 @@ import {
     IonCardContent,
     RefresherEventDetail,
 } from "@ionic/react";
-import {
-    add,
-    create,
-    close,
-    trash,
-    logOut,
-    pricetag,
-    grid,
-} from "ionicons/icons";
+import { add, create, close, trash, arrowBack } from "ionicons/icons";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import api from "../services/api";
-import authService from "../services/auth.service";
-import "./Home.css";
+import "./Categories.css";
 
-const Home: React.FC = () => {
+const Categories: React.FC = () => {
     const history = useHistory();
-    const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -61,29 +44,19 @@ const Home: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [showAlert, setShowAlert] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-    // Form State
-    const initialProductState = {
+    const initialCategoryState = {
         nombre: "",
-        precio: "",
-        stock: "",
-        categoria_id: "",
         descripcion: "",
-        estado: "Activo",
     };
-    const [formData, setFormData] = useState(initialProductState);
+    const [formData, setFormData] = useState(initialCategoryState);
 
     const fetchData = async () => {
         try {
-            const [prodRes, catRes] = await Promise.all([
-                api.get("/products"),
-                api.get("/categories"),
-            ]);
-            setProducts(prodRes.data);
-            setCategories(catRes.data);
+            const response = await api.get("/categories");
+            setCategories(response.data);
         } catch (error: any) {
-            console.error("Error fetching data:", error);
+            console.error("Error fetching categories:", error);
             setToastMessage(`Error: ${error.message}`);
             setToastColor("danger");
         } finally {
@@ -92,58 +65,49 @@ const Home: React.FC = () => {
     };
 
     useEffect(() => {
-        // Verificar autenticación
-        if (!authService.isAuthenticated()) {
-            history.push("/login");
-            return;
-        }
         fetchData();
-    }, [history]);
+    }, []);
 
     const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
         await fetchData();
         event.detail.complete();
     };
 
-    const handleOpenModal = (product?: any) => {
-        if (product) {
-            setEditingId(product.id);
+    const handleOpenModal = (category?: any) => {
+        if (category) {
+            setEditingId(category.id);
             setFormData({
-                nombre: product.nombre,
-                precio: product.precio,
-                stock: product.stock,
-                categoria_id: product.categoria_id,
-                descripcion: product.descripcion,
-                estado: product.estado,
+                nombre: category.nombre,
+                descripcion: category.descripcion || "",
             });
         } else {
             setEditingId(null);
-            setFormData(initialProductState);
+            setFormData(initialCategoryState);
         }
         setShowModal(true);
     };
 
     const handleSave = async () => {
-        if (!formData.nombre || !formData.precio || !formData.categoria_id) {
-            setToastMessage("Por favor completa los campos obligatorios");
+        if (!formData.nombre) {
+            setToastMessage("Por favor ingresa el nombre de la categoría");
             setToastColor("warning");
             return;
         }
 
         try {
             if (editingId) {
-                await api.put(`/products/${editingId}`, formData);
-                setToastMessage("✓ Producto actualizado");
+                await api.put(`/categories/${editingId}`, formData);
+                setToastMessage("✓ Categoría actualizada");
                 setToastColor("success");
             } else {
-                await api.post("/products", formData);
-                setToastMessage("✓ Producto creado");
+                await api.post("/categories", formData);
+                setToastMessage("✓ Categoría creada");
                 setToastColor("success");
             }
             setShowModal(false);
             fetchData();
         } catch (error: any) {
-            console.error("Error saving product:", error);
+            console.error("Error saving category:", error);
             setToastMessage(`Error al guardar: ${error.message}`);
             setToastColor("danger");
         }
@@ -157,23 +121,18 @@ const Home: React.FC = () => {
     const handleDelete = async () => {
         if (!deleteId) return;
         try {
-            await api.delete(`/products/${deleteId}`);
-            setToastMessage("✓ Producto eliminado");
+            await api.delete(`/categories/${deleteId}`);
+            setToastMessage("✓ Categoría eliminada");
             setToastColor("success");
             fetchData();
         } catch (error: any) {
-            console.error("Error deleting product:", error);
+            console.error("Error deleting category:", error);
             setToastMessage(`Error al eliminar: ${error.message}`);
             setToastColor("danger");
         } finally {
             setShowAlert(false);
             setDeleteId(null);
         }
-    };
-
-    const handleLogout = () => {
-        authService.logout();
-        history.push("/login");
     };
 
     const renderSkeleton = () => (
@@ -184,7 +143,7 @@ const Home: React.FC = () => {
                         <IonSkeletonText animated style={{ width: "60%" }} />
                     </IonCardHeader>
                     <IonCardContent>
-                        <IonSkeletonText animated style={{ width: "40%" }} />
+                        <IonSkeletonText animated style={{ width: "80%" }} />
                     </IonCardContent>
                 </IonCard>
             ))}
@@ -195,12 +154,12 @@ const Home: React.FC = () => {
         <IonPage>
             <IonHeader>
                 <IonToolbar color="primary">
-                    <IonTitle>The Rock Gym - Inventario</IonTitle>
-                    <IonButtons slot="end">
-                        <IonButton onClick={() => setShowLogoutAlert(true)}>
-                            <IonIcon icon={logOut} />
+                    <IonButtons slot="start">
+                        <IonButton onClick={() => history.push("/home")}>
+                            <IonIcon icon={arrowBack} />
                         </IonButton>
                     </IonButtons>
+                    <IonTitle>Categorías</IonTitle>
                 </IonToolbar>
             </IonHeader>
             <IonContent fullscreen>
@@ -208,43 +167,27 @@ const Home: React.FC = () => {
                     <IonRefresherContent />
                 </IonRefresher>
 
-                <IonHeader collapse="condense">
-                    <IonToolbar>
-                        <IonTitle size="large">Inventario</IonTitle>
-                    </IonToolbar>
-                </IonHeader>
-
                 {loading ? (
                     renderSkeleton()
                 ) : (
-                    <div className="products-grid">
-                        {products
+                    <div className="categories-grid">
+                        {categories
                             .sort((a, b) => b.id - a.id)
-                            .map((p) => (
-                                <IonCard key={p.id} className="product-card">
+                            .map((c) => (
+                                <IonCard key={c.id} className="category-card">
                                     <IonCardHeader>
-                                        <IonCardTitle>{p.nombre}</IonCardTitle>
-                                        <p className="category-badge">
-                                            <IonIcon icon={pricetag} />{" "}
-                                            {p.categoria?.nombre ||
-                                                "Sin categoría"}
-                                        </p>
+                                        <IonCardTitle>{c.nombre}</IonCardTitle>
                                     </IonCardHeader>
                                     <IonCardContent>
-                                        <div className="product-info">
-                                            <div className="price">
-                                                ${p.precio}
-                                            </div>
-                                            <div className="stock">
-                                                Stock: {p.stock}
-                                            </div>
-                                        </div>
-                                        <div className="product-actions">
+                                        <p className="category-description">
+                                            {c.descripcion || "Sin descripción"}
+                                        </p>
+                                        <div className="category-actions">
                                             <IonButton
                                                 size="small"
                                                 fill="outline"
                                                 onClick={() =>
-                                                    handleOpenModal(p)
+                                                    handleOpenModal(c)
                                                 }
                                             >
                                                 <IonIcon
@@ -258,7 +201,7 @@ const Home: React.FC = () => {
                                                 fill="outline"
                                                 color="danger"
                                                 onClick={() =>
-                                                    confirmDelete(p.id)
+                                                    confirmDelete(c.id)
                                                 }
                                             >
                                                 <IonIcon
@@ -288,8 +231,8 @@ const Home: React.FC = () => {
                         <IonToolbar color="primary">
                             <IonTitle>
                                 {editingId
-                                    ? "Editar Producto"
-                                    : "Nuevo Producto"}
+                                    ? "Editar Categoría"
+                                    : "Nueva Categoría"}
                             </IonTitle>
                             <IonButtons slot="end">
                                 <IonButton onClick={() => setShowModal(false)}>
@@ -310,50 +253,6 @@ const Home: React.FC = () => {
                                     })
                                 }
                             />
-                        </IonItem>
-                        <IonItem>
-                            <IonLabel position="floating">Precio *</IonLabel>
-                            <IonInput
-                                type="number"
-                                value={formData.precio}
-                                onIonChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        precio: e.detail.value!,
-                                    })
-                                }
-                            />
-                        </IonItem>
-                        <IonItem>
-                            <IonLabel position="floating">Stock</IonLabel>
-                            <IonInput
-                                type="number"
-                                value={formData.stock}
-                                onIonChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        stock: e.detail.value!,
-                                    })
-                                }
-                            />
-                        </IonItem>
-                        <IonItem>
-                            <IonLabel position="floating">Categoría *</IonLabel>
-                            <IonSelect
-                                value={formData.categoria_id}
-                                onIonChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        categoria_id: e.detail.value!,
-                                    })
-                                }
-                            >
-                                {categories.map((c) => (
-                                    <IonSelectOption key={c.id} value={c.id}>
-                                        {c.nombre}
-                                    </IonSelectOption>
-                                ))}
-                            </IonSelect>
                         </IonItem>
                         <IonItem>
                             <IonLabel position="floating">Descripción</IonLabel>
@@ -381,7 +280,7 @@ const Home: React.FC = () => {
                     onDidDismiss={() => setShowAlert(false)}
                     header={"Confirmar eliminación"}
                     message={
-                        "¿Estás seguro de que deseas eliminar este producto?"
+                        "¿Estás seguro de que deseas eliminar esta categoría?"
                     }
                     buttons={[
                         {
@@ -399,24 +298,6 @@ const Home: React.FC = () => {
                     ]}
                 />
 
-                <IonAlert
-                    isOpen={showLogoutAlert}
-                    onDidDismiss={() => setShowLogoutAlert(false)}
-                    header={"Cerrar sesión"}
-                    message={"¿Estás seguro de que deseas cerrar sesión?"}
-                    buttons={[
-                        {
-                            text: "Cancelar",
-                            role: "cancel",
-                        },
-                        {
-                            text: "Salir",
-                            role: "confirm",
-                            handler: handleLogout,
-                        },
-                    ]}
-                />
-
                 <IonToast
                     isOpen={!!toastMessage}
                     message={toastMessage}
@@ -430,4 +311,4 @@ const Home: React.FC = () => {
     );
 };
 
-export default Home;
+export default Categories;

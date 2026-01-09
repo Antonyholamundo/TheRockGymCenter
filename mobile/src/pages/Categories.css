@@ -1,0 +1,45 @@
+.categories-grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.category-card {
+    margin: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.category-card:active {
+    transform: scale(0.98);
+}
+
+.category-card ion-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+}
+
+.category-description {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    margin-bottom: 12px;
+    min-height: 40px;
+}
+
+.category-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.category-actions ion-button {
+    flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+}

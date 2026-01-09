@@ -4,6 +4,7 @@ import { IonReactRouter } from "@ionic/react-router";
 import { useEffect } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Categories from "./pages/Categories";
 import authService from "./services/auth.service";
 
 /* Core CSS required for Ionic components to work properly */
@@ -53,6 +54,9 @@ const App: React.FC = () => {
                     </Route>
                     <Route exact path="/home">
                         <Home />
+                    </Route>
+                    <Route exact path="/categories">
+                        <Categories />
                     </Route>
                     <Route exact path="/">
                         <Redirect to="/home" />
