@@ -27,6 +27,8 @@ services:
         fromDatabase:
           name: therockgymcenter-db
           property: connectionString
+      - key: DB_CONNECTION
+        value: pgsql
       - key: SESSION_DRIVER
         value: database # Recomendado vs file en serverless/ephemeral
       - key: SESSION_LIFETIME
