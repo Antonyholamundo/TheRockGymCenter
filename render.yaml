@@ -7,17 +7,11 @@ databases:
 services:
   - type: web
     name: therockgymcenter-web
-    env: php
+    env: docker
     region: oregon
     plan: free # Opcional
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      npm install
-      npm run build
-      php artisan config:cache
-      php artisan route:cache
-      php artisan view:cache
-    startCommand: php artisan migrate --force && heroku-php-apache2 public/
+    # buildCommand se elimina porque Dockerfile maneja el build
+    startCommand: php artisan migrate --force && apache2-foreground
     envVars:
       - key: APP_KEY
         generateValue: true
