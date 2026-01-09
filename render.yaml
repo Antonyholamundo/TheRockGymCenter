@@ -11,7 +11,7 @@ services:
     region: oregon
     plan: free # Opcional
     # buildCommand se elimina porque Dockerfile maneja el build
-    startCommand: php artisan migrate --force && apache2-foreground
+    # startCommand eliminado, se maneja en Dockerfile CMD
     envVars:
       - key: APP_KEY
         generateValue: true

@@ -39,8 +39,13 @@ RUN npm install && npm run build
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Copy startup script
+COPY docker-run.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-run.sh
+
 # Expose port 80
 EXPOSE 80
 
-# Start command (can be overridden by Render)
-CMD ["apache2-foreground"]
+# Start command
+CMD ["/usr/local/bin/docker-run.sh"]
+
