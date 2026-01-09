@@ -1,5 +1,5 @@
 .login-content {
-    --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --background: #ffffff;
 }
 
 .login-container {
@@ -13,11 +13,12 @@
 .login-container ion-card {
     max-width: 400px;
     width: 100%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
 }
 
 .login-container ion-card-title {
     font-size: 24px;
     font-weight: bold;
-    color: var(--ion-color-primary);
+    color: #333;
 }
