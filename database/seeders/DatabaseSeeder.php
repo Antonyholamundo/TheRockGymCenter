@@ -13,13 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear usuario administrador por defecto
-        User::firstOrCreate(
-            ['email' => 'admin@therockgym.com'],
-            [
-                'name' => 'Administrador',
-                'password' => bcrypt('admin123'),
-            ]
-        );
+        // User::factory(10)->create();
+
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
     }
 }
