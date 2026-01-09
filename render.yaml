@@ -1,0 +1,41 @@
+databases:
+  - name: therockgymcenter-db
+    databaseName: therockgymcenter
+    user: therockgymcenter_user
+    plan: free # Opcional, pero bueno para empezar
+
+services:
+  - type: web
+    name: therockgymcenter-web
+    env: php
+    region: oregon
+    plan: free # Opcional
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm install
+      npm run build
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+    startCommand: php artisan migrate --force && heroku-php-apache2 public/
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_NAME
+        value: TheRockGymCenter
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        sync: false # Render auto-asigna la URL
+      - key: DATABASE_URL
+        fromDatabase:
+          name: therockgymcenter-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database # Recomendado vs file en serverless/ephemeral
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: LOG_CHANNEL
+        value: stderr
