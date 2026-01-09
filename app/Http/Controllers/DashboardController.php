@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Usuarios;
 use App\Models\Ventas;
 use App\Models\membresiasUsuarios;
-use App\Models\Productos;
+use App\Models\productos;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -23,7 +23,7 @@ class DashboardController extends Controller
         $membresiasActivas = membresiasUsuarios::where('estado', 'Activo')->count();
 
         // 4. Productos Bajos de Stock (Menos de 10 unidades)
-        $productosBajos = Productos::where('stock', '<', 10)->count();
+        $productosBajos = productos::where('stock', '<', 10)->count();
 
         return view('index', compact('usuariosActivos', 'ingresosHoy', 'membresiasActivas', 'productosBajos'));
     }
